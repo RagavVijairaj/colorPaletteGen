@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Color Palette Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #f0f2f5;
+            color: #1a1a1a;
+            line-height: 1.6;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #2d3436;
+        }
+
+        .controls {
+            display: grid;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .control-group {
+            display: grid;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #4a4a4a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            background: #dfe6e9;
+            border-radius: 3px;
+            appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #6c5ce7;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        input[type="range"]:hover::-webkit-slider-thumb {
+            transform: scale(1.1);
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .color-box {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+
+        .color-swatch {
+            height: 150px;
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .color-swatch::after {
+            content: 'Click to Copy';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .color-swatch:hover::after {
+            opacity: 1;
+        }
+
+        .color-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+
+        .copied-toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: #2ecc71;
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .copied-toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .palette-section {
+            margin-top: 2rem;
+        }
+
+        .palette-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Color Palette Generator</h1>
+
+    <div class="card">
+        <div class="controls">
+            <div class="control-group">
+                <label>
+                    Hue
+                    <span id="hueValue">0°</span>
+                </label>
+                <input type="range" id="hue" min="0" max="360" value="0">
+            </div>
+
+            <div class="control-group">
+                <label>
+                    Saturation
+                    <span id="satValue">100%</span>
+                </label>
+                <input type="range" id="saturation" min="0" max="100" value="100">
+            </div>
+
+            <div class="control-group">
+                <label>
+                    Lightness
+                    <span id="lightValue">50%</span>
+                </label>
+                <input type="range" id="lightness" min="0" max="100" value="50">
+            </div>
+        </div>
+
+        <div class="color-grid">
+            <div class="color-box">
+                <div class="color-swatch" id="mainColor"></div>
+                <div class="color-info">
+                    <span>Selected</span>
+                    <span id="mainHex">#000000</span>
+                </div>
+            </div>
+            <div class="color-box">
+                <div class="color-swatch" id="complementary"></div>
+                <div class="color-info">
+                    <span>Complementary</span>
+                    <span id="complementaryHex">#000000</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="palette-section">
+            <h2>Analogous Colors</h2>
+            <div class="palette-grid" id="analogous"></div>
+        </div>
+
+        <div class="palette-section">
+            <h2>Triadic Colors</h2>
+            <div class="palette-grid" id="triadic"></div>
+        </div>
+    </div>
+</div>
+
+<div class="copied-toast" id="toast">Color copied to clipboard!</div>
+
+<script>
+    function hslToHex(h, s, l) {
+        l /= 100;
+        const a = s * Math.min(l, 1 - l) / 100;
+        const f = n => {
+            const k = (n + h / 30) % 12;
+            const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+            return Math.round(255 * color).toString(16).padStart(2, '0');
+        };
+        return `#${f(0)}${f(8)}${f(4)}`;
+    }
+
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            const toast = document.getElementById('toast');
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        });
+    }
+
+    function createColorBox(color, label) {
+        return `
+                <div class="color-box">
+                    <div class="color-swatch" style="background-color: ${color}"
+                         onclick="copyToClipboard('${color}')"></div>
+                    <div class="color-info">
+                        <span>${label}</span>
+                        <span>${color}</span>
+                    </div>
+                </div>
+            `;
+    }
+
+    function updateColors() {
+        const hue = parseInt(document.getElementById('hue').value);
+        const sat = parseInt(document.getElementById('saturation').value);
+        const light = parseInt(document.getElementById('lightness').value);
+
+        document.getElementById('hueValue').textContent = `${hue}°`;
+        document.getElementById('satValue').textContent = `${sat}%`;
+        document.getElementById('lightValue').textContent = `${light}%`;
+
+        const mainColor = hslToHex(hue, sat, light);
+        const mainSwatch = document.getElementById('mainColor');
+        mainSwatch.style.backgroundColor = mainColor;
+        document.getElementById('mainHex').textContent = mainColor;
+        mainSwatch.onclick = () => copyToClipboard(mainColor);
+
+        const compHue = (hue + 180) % 360;
+        const compColor = hslToHex(compHue, sat, light);
+        const compSwatch = document.getElementById('complementary');
+        compSwatch.style.backgroundColor = compColor;
+        document.getElementById('complementaryHex').textContent = compColor;
+        compSwatch.onclick = () => copyToClipboard(compColor);
+
+        const analogousHues = [hue - 30, hue, hue + 30].map(h => (h + 360) % 360);
+        document.getElementById('analogous').innerHTML = analogousHues
+            .map((h, i) => createColorBox(hslToHex(h, sat, light), `Analogous ${i + 1}`))
+            .join('');
+
+        const triadicHues = [hue, (hue + 120) % 360, (hue + 240) % 360];
+        document.getElementById('triadic').innerHTML = triadicHues
+            .map((h, i) => createColorBox(hslToHex(h, sat, light), `Triadic ${i + 1}`))
+            .join('');
+    }
+
+    document.getElementById('hue').addEventListener('input', updateColors);
+    document.getElementById('saturation').addEventListener('input', updateColors);
+    document.getElementById('lightness').addEventListener('input', updateColors);
+
+    updateColors();
+</script>
+</body>
+</html>
